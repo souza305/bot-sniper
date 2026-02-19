@@ -26,7 +26,6 @@ def verificar_acesso(email_user, senha_user):
 # --- CSS ULTRA PRIORITÁRIO (LIMPEZA TOTAL) ---
 st.markdown("""
     <style>
-    /* REMOVER RODAPÉ, MENU E MARCAS D'ÁGUA */
     #MainMenu {visibility: hidden !important;}
     footer {visibility: hidden !important;}
     header {visibility: hidden !important;}
@@ -34,11 +33,7 @@ st.markdown("""
     .viewerBadge_container__1QSob {display: none !important;}
     .stDeployButton {display:none !important;}
     div[data-testid="stToolbar"] {visibility: hidden !important;}
-    
-    /* RESET DE ESPAÇOS PARA OCUPAR A TELA TODA */
     .block-container {padding-top: 1rem !important; padding-bottom: 0rem !important;}
-    
-    /* DESIGN CONGELADO */
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;900&display=swap');
     * { font-family: 'Inter', sans-serif; }
     .stApp { background: #05070a; color: #e5e7eb; }
@@ -93,13 +88,14 @@ with st.sidebar:
         st.session_state.logado = False
         st.rerun()
 
-# --- OPERACIONAL ---
+# --- TIMER ---
 def get_timer(tf):
     now = datetime.now()
     m_tf = int(tf.replace("m", ""))
     rem = (m_tf * 60) - ((now.minute % m_tf) * 60 + now.second)
     return f"{rem // 60:02d}:{rem % 60:02d}"
 
+# --- OPERACIONAL (COM NOVA REGRA DE ASSERTIVIDADE) ---
 try:
     df = fetch_data(ativo, timeframe).dropna()
     df['cor'] = (df['Close'] > df['Open']).astype(int)
@@ -117,12 +113,16 @@ try:
     st.divider()
     c_sig, c_graph = st.columns([1, 2])
     with c_sig:
-        if win_rate >= 50.0:
+        # --- DEFINIÇÃO DA REGRA POR TIMEFRAME ---
+        minimo_win_rate = 60.0 if timeframe == "1m" else 50.0
+        
+        if win_rate >= minimo_win_rate:
             dec = "CALL" if preco_atual > ema9 else "PUT"
-            st.markdown(f'<div class="card-sinal {"buy-zone" if dec=="CALL" else "sell-zone"}"><h2>🔥 {dec}</h2><p>ENTRADA AGORA</p></div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="card-sinal {"buy-zone" if dec=="CALL" else "sell-zone"}"><h2>🔥 {dec}</h2><p>ALTA PROBABILIDADE</p></div>', unsafe_allow_html=True)
+            st.success(f"Confirmado: TF {timeframe} > {minimo_win_rate}%")
         else:
-            st.markdown('<div class="card-sinal" style="color:#6b7280;"><h2>⏳ AGUARDAR</h2><p>BUSCANDO PADRÃO</p></div>', unsafe_allow_html=True)
-        st.info(f"Progresso: {(( (entrada_base*(payout/100)) / valor_meta)*100):.1f}% p/ Win")
+            st.markdown('<div class="card-sinal" style="color:#6b7280; border-color:#374151;"><h2>⏳ AGUARDAR</h2><p>PROBABILIDADE BAIXA</p></div>', unsafe_allow_html=True)
+            st.warning(f"TF {timeframe} exige > {minimo_win_rate}% para entrada.")
 
     with c_graph:
         fig = go.Figure(data=[go.Candlestick(x=df.index, open=df['Open'], high=df['High'], low=df['Low'], close=df['Close'])])
