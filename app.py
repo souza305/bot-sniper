@@ -8,7 +8,26 @@ import numpy as np
 # --- CONFIGURAÇÃO MASTER ---
 st.set_page_config(page_title="SNIPER ELITE AI | PRO", layout="wide", page_icon="🎯")
 
-# --- FRONT-END ORIGINAL (SEM ALTERAÇÕES NO LAYOUT) ---
+# --- BANCO DE DATOS CONECTADO (LINK FORNECIDO) ---
+URL_DB = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTZU5Y6Fmmp-Mjl_vlyZkCNtuybCzldoQ78AKS9hWo7lwmUrvBQCUMyZbDUguAW2uOQmOhijo01rjsq/pub?output=csv"
+
+def verificar_acesso(email_user, senha_user):
+    try:
+        # Lê a planilha publicada em CSV
+        df_db = pd.read_csv(URL_DB)
+        # Limpa espaços em branco para evitar erros
+        df_db.columns = df_db.columns.str.strip().str.lower()
+        df_db['email'] = df_db['email'].astype(str).str.strip()
+        df_db['senha'] = df_db['senha'].astype(str).str.strip()
+        
+        # Procura o usuário
+        permitido = df_db[(df_db['email'] == email_user.strip()) & (df_db['senha'] == senha_user.strip())]
+        return not permitido.empty
+    except Exception as e:
+        # Em caso de erro na leitura da planilha (ex: link offline)
+        return False
+
+# --- FRONT-END ORIGINAL ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;900&display=swap');
@@ -39,28 +58,29 @@ st.markdown("""
         border-radius: 12px !important; height: 50px !important; border: none !important;
     }
     .metric-box { background: rgba(255,255,255,0.03); padding: 15px; border-radius: 10px; border: 1px solid #1f2937; text-align: center; }
-    
-    /* Estilo do Cronômetro */
     .timer-text { color: #d4af37; font-weight: 900; font-size: 1.2rem; }
     </style>
     """, unsafe_allow_html=True)
 
-# --- LOGIN ---
+# --- SISTEMA DE LOGIN ---
 if 'logado' not in st.session_state: st.session_state.logado = False
+
 if not st.session_state.logado:
     _, col_mid, _ = st.columns([1, 1.3, 1])
     with col_mid:
         st.markdown('<div class="login-container"><h1>🎯 SNIPER ELITE</h1>', unsafe_allow_html=True)
-        u_name = st.text_input("Seu Nome:")
-        u_email = st.text_input("E-mail:")
+        u_email = st.text_input("E-mail Cadastrado:")
+        u_senha = st.text_input("Senha de Acesso:", type="password")
         if st.button("ENTRAR AGORA"):
-            if u_name and "@" in u_email:
+            if verificar_acesso(u_email, u_senha):
                 st.session_state.logado = True
-                st.session_state.name = u_name
+                st.session_state.name = u_email.split('@')[0].upper()
                 st.rerun()
+            else:
+                st.error("Acesso Negado: E-mail ou Senha incorretos.")
     st.stop()
 
-# --- SIDEBAR ---
+# --- CONFIGURAÇÕES DO ROBÔ (ORIGINAIS) ---
 with st.sidebar:
     letra = st.session_state.name[0].upper()
     st.markdown(f'<div class="user-profile"><div class="avatar">{letra}</div><div><b>{st.session_state.name}</b><br><small>VIP ACTIVE</small></div></div>', unsafe_allow_html=True)
@@ -71,7 +91,6 @@ with st.sidebar:
         st.session_state.logado = False
         st.rerun()
 
-# --- LÓGICA DO TEMPO (MINUTOS E SEGUNDOS) ---
 def calcular_fechamento(tf):
     agora = datetime.now()
     minutos_tf = int(tf.replace("m", ""))
@@ -81,23 +100,19 @@ def calcular_fechamento(tf):
     mins, segs = divmod(restante, 60)
     return f"{mins:02d}:{segs:02d}"
 
-# --- MOTOR DE ANALISE ---
 try:
     df = yf.download(ativo, period="2d", interval=timeframe, progress=False)
-    
     if df is not None and not df.empty and len(df) > 15:
         df = df.dropna()
         df['cor'] = (df['Close'] > df['Open']).astype(int)
         df['win_seq'] = (df['cor'] == df['cor'].shift(1)).astype(int)
         win_rate = float(df['win_seq'].tail(40).mean() * 100)
         
-        # Dados para o sinal
         ultima = df.iloc[-1]
         preco_atual = float(ultima['Close'])
         ema9 = float(df['Close'].ewm(span=9).mean().iloc[-1])
         tempo_restante = calcular_fechamento(timeframe)
 
-        # Dashboard
         st.markdown(f"### 🛡️ Sniper Intelligence: {ativo}")
         m1, m2, m3 = st.columns(3)
         with m1: st.markdown(f"<div class='metric-box'><small>ASSERTIVIDADE</small><br><b style='color:#00ffcc;'>{win_rate:.1f}%</b></div>", unsafe_allow_html=True)
@@ -109,7 +124,6 @@ try:
 
         with col_sig:
             st.markdown("#### 📡 SINAL DA IA")
-            
             decisao = "AGUARDAR"
             if win_rate >= 50.0:
                 if preco_atual > ema9: decisao = "CALL"
@@ -129,8 +143,7 @@ try:
             fig = go.Figure(data=[go.Candlestick(x=df.index, open=df['Open'], high=df['High'], low=df['Low'], close=df['Close'])])
             fig.update_layout(template="plotly_dark", xaxis_rangeslider_visible=False, height=450, margin=dict(l=0,r=0,t=0,b=0))
             st.plotly_chart(fig, use_container_width=True)
-
 except:
     st.info("🔄 Sincronizando conexão...")
 
-st.caption(f"Sniper Elite v18.5 | {datetime.now().strftime('%H:%M:%S')}")
+st.caption(f"Sniper Elite v18.5 | Banco de Dados Ativo | {datetime.now().strftime('%H:%M:%S')}")
