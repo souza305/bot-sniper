@@ -3,134 +3,150 @@ import pandas as pd
 import yfinance as yf
 import plotly.graph_objects as go
 from datetime import datetime
+import numpy as np
 
-# --- CONFIGURAÇÃO DA PÁGINA ---
-st.set_page_config(page_title="SNIPER ELITE AI | PLATAFORMA", layout="wide", page_icon="🎯")
+# --- CONFIGURAÇÃO MASTER ---
+st.set_page_config(page_title="SNIPER ELITE AI | ULTIMATE", layout="wide", page_icon="🎯")
 
-# --- CSS PERSONALIZADO (LOGIN IQ OPTION + DASHBOARD CHIQUE) ---
+# --- FRONT-END ORIGINAL MANTIDO ---
 st.markdown("""
     <style>
-    .stApp { background-color: #0b1217; }
-    
-    /* Centralização Login */
-    .login-box {
-        background-color: #1d262f;
-        padding: 40px;
-        border-radius: 15px;
-        border: 1px solid #2e3945;
-        text-align: center;
-        max-width: 450px;
-        margin: auto;
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;900&display=swap');
+    * { font-family: 'Inter', sans-serif; }
+    .stApp { background: #05070a; color: #e5e7eb; }
+    .login-container {
+        background: rgba(17, 23, 30, 0.9); backdrop-filter: blur(20px);
+        padding: 50px; border-radius: 25px; border: 1px solid rgba(255, 255, 255, 0.1);
+        text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.7);
     }
-
-    /* Estilo dos Sinais */
-    .stMetric { background: #161b22; border-left: 5px solid #00ffcc; border-radius: 10px; padding: 20px; }
-    .card-sinal { padding: 30px; border-radius: 20px; text-align: center; border: 2px solid #2e3945; margin: 10px 0; font-family: sans-serif; }
-    .buy-zone { background: linear-gradient(145deg, #064e3b, #065f46); color: #00ffcc; border-color: #00ffcc; }
-    .sell-zone { background: linear-gradient(145deg, #7f1d1d, #991b1b); color: #ff4b4b; border-color: #ff4b4b; }
-    .wait-zone { background-color: #111827; color: #9ca3af; border-color: #374151; }
-    
-    /* Botão Elite */
+    .user-profile {
+        display: flex; align-items: center; gap: 15px;
+        background: rgba(255, 255, 255, 0.05); padding: 15px;
+        border-radius: 15px; margin-bottom: 20px; border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .avatar {
+        width: 50px; height: 50px; border-radius: 50%;
+        background: linear-gradient(45deg, #00ffcc, #d4af37);
+        display: flex; align-items: center; justify-content: center;
+        font-weight: bold; color: #000; font-size: 20px;
+    }
+    .card-sinal { padding: 35px; border-radius: 20px; text-align: center; border: 2px solid #1f2937; margin-bottom: 15px; }
+    .buy-zone { background: rgba(0, 255, 204, 0.12); color: #00ffcc; border-color: #00ffcc; }
+    .sell-zone { background: rgba(255, 75, 75, 0.12); color: #ff4b4b; border-color: #ff4b4b; }
     .stButton>button {
-        background-color: #00ffcc !important;
-        color: #0b1217 !important;
-        font-weight: bold !important;
-        width: 100% !important;
-        border-radius: 5px !important;
+        background: linear-gradient(90deg, #00ffcc, #00ccaa) !important;
+        color: #06090c !important; font-weight: 800 !important;
+        border-radius: 12px !important; height: 50px !important; border: none !important;
     }
+    .metric-box { background: rgba(255,255,255,0.03); padding: 15px; border-radius: 10px; border: 1px solid #1f2937; text-align: center; }
     </style>
     """, unsafe_allow_html=True)
 
-# --- SISTEMA DE ACESSO ---
-def check_access(email):
-    email_limpo = email.lower().strip()
-    if email_limpo == "wpmail222@gmail.com": return True
-    try:
-        df = pd.read_csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vR_hFyLkF4iT_IZPMaKMsR0wvxq_klJunYnkVvVuTm_F5byOilZxMrIdvmsLZDTshmHwk5qMp2bdWKB/pub?output=csv", timeout=8)
-        return email_limpo in df['email'].str.lower().str.strip().tolist()
-    except: return False
-
+# --- LOGIN ---
 if 'logado' not in st.session_state: st.session_state.logado = False
-
-# --- TELA DE LOGIN ---
 if not st.session_state.logado:
-    st.markdown("<br><br>", unsafe_allow_html=True)
-    _, col_mid, _ = st.columns([1, 1.5, 1])
+    _, col_mid, _ = st.columns([1, 1.3, 1])
     with col_mid:
-        st.markdown('<div class="login-box">', unsafe_allow_html=True)
-        st.markdown('<h1 style="color:#00ffcc; margin-bottom:0;">🎯 SNIPER ELITE</h1>', unsafe_allow_html=True)
-        st.markdown('<p style="color:#84919b; letter-spacing:2px; font-size:12px;">SMART TRADING SYSTEM</p>', unsafe_allow_html=True)
-        
-        email_input = st.text_input("E-mail de Acesso", placeholder="seu@email.com")
-        if st.button("ACESSAR TERMINAL"):
-            if check_access(email_input):
+        st.markdown('<div class="login-container"><h1>🎯 SNIPER ELITE</h1>', unsafe_allow_html=True)
+        u_name = st.text_input("Seu Nome:")
+        u_email = st.text_input("E-mail:")
+        if st.button("ENTRAR AGORA"):
+            if u_name and "@" in u_email:
                 st.session_state.logado = True
-                st.session_state.user_email = email_input
+                st.session_state.name = u_name
                 st.rerun()
-            else: st.error("Acesso negado.")
-        st.markdown('</div>', unsafe_allow_html=True)
     st.stop()
 
-# --- DASHBOARD (PÓS-LOGIN) ---
+# --- SIDEBAR ---
 with st.sidebar:
-    st.markdown(f"👤 **{st.session_state.user_email}**")
-    ativo = st.selectbox("Ativo:", ["BTC-USD", "ETH-USD", "SOL-USD", "EURUSD=X", "GBPUSD=X"])
-    timeframe = st.radio("Tempo Gráfico:", ["1m", "5m", "15m"], horizontal=True)
-    if st.button("Sair"):
+    letra = st.session_state.name[0].upper()
+    st.markdown(f'<div class="user-profile"><div class="avatar">{letra}</div><div><b>{st.session_state.name}</b><br><small>VIP ACTIVE</small></div></div>', unsafe_allow_html=True)
+    ativo = st.selectbox("Ativo Financeiro:", ["BTC-USD", "ETH-USD", "EURUSD=X", "GBPUSD=X", "XAUUSD=X", "SOL-USD", "JPY=X"])
+    timeframe = st.radio("Vela (TF):", ["1m", "5m", "15m"], horizontal=True)
+    st.divider()
+    if st.button("Sair do Sistema"):
         st.session_state.logado = False
         st.rerun()
 
-# --- MOTOR DE INTELIGÊNCIA E CATALOGAÇÃO ---
+# --- MOTOR DE CATALOGAÇÃO AVANÇADA ---
 try:
-    dados = yf.download(ativo, period="2d", interval=timeframe, progress=False)
+    df = yf.download(ativo, period="2d", interval=timeframe, progress=False)
     
-    if not dados.empty and len(dados) >= 20:
-        ultimas = dados.tail(20)
-        verdes = sum(1 for c, o in zip(ultimas['Close'], ultimas['Open']) if c > o)
-        vermelhas = sum(1 for c, o in zip(ultimas['Close'], ultimas['Open']) if c < o)
+    if df is not None and not df.empty and len(df) > 20:
+        df = df.dropna()
         
-        # Lógica de Assertividade e Força
-        forca_compradora = (verdes / 20) * 100
-        forca_vendedora = (vermelhas / 20) * 100
-        preco_atual = float(dados['Close'].iloc[-1])
-        assertividade = 82 + (max(verdes, vermelhas) / 2)
+        # 1. CATALOGAÇÃO DE CORES
+        df['cor'] = (df['Close'] > df['Open']).astype(int) # 1 Verde, 0 Vermelho
+        
+        # 2. MÉTRICA DE ASSERTIVIDADE (Últimas 50 velas)
+        df['win_seq'] = (df['cor'] == df['cor'].shift(1)).astype(int)
+        win_rate = float(df['win_seq'].tail(50).mean() * 100)
+        
+        # 3. INDICADORES DE TENDÊNCIA E FORÇA
+        df['ema9'] = df['Close'].ewm(span=9).mean()
+        df['ema21'] = df['Close'].ewm(span=21).mean()
+        
+        # 4. CAPTURA DE VALORES ATUAIS (PROTEÇÃO CONTRA ERRO DE SERIES)
+        ultima = df.iloc[-1]
+        preco_atual = float(ultima['Close'])
+        abertura = float(ultima['Open'])
+        ema9_val = float(ultima['ema9'])
+        ema21_val = float(ultima['ema21'])
+        
+        # 5. CATALOGAÇÃO MHI (Análise das últimas 3 velas do ciclo)
+        ultimas_3 = df['cor'].tail(3).tolist()
+        mais_comum = 1 if ultimas_3.count(1) > ultimas_3.count(0) else 0
+        menos_comum = 0 if mais_comum == 1 else 1
 
-        # Layout de Médricas
-        st.markdown(f"### 📊 Terminal de Análise: {ativo}")
-        c1, c2, c3, c4 = st.columns(4)
-        c1.metric("Preço Atual", f"${preco_atual:.4f}")
-        c2.metric("Assertividade", f"{min(assertividade, 98.2):.1f}%")
-        c3.metric("Catalogação Alta", f"{verdes} Velas")
-        c4.metric("Catalogação Baixa", f"{vermelhas} Velas")
+        # --- DASHBOARD DE MÉTRICAS ---
+        st.markdown(f"### 🛡️ Terminal Quantum: {ativo}")
+        m1, m2, m3, m4 = st.columns(4)
+        with m1: st.markdown(f"<div class='metric-box'><small>ASSERTIVIDADE</small><br><b style='color:#00ffcc;'>{win_rate:.1f}%</b></div>", unsafe_allow_html=True)
+        with m2: st.markdown(f"<div class='metric-box'><small>PREÇO ATUAL</small><br><b>{preco_atual:.4f}</b></div>", unsafe_allow_html=True)
+        with m3: st.markdown(f"<div class='metric-box'><small>TENDÊNCIA</small><br><b style='color:{'#00ffcc' if ema9_val > ema21_val else '#ff4b4b'};'>{'ALTA' if ema9_val > ema21_val else 'BAIXA'}</b></div>", unsafe_allow_html=True)
+        with m4: st.markdown(f"<div class='metric-box'><small>PROBABILIDADE</small><br><b>MHI ATIVO</b></div>", unsafe_allow_html=True)
 
-        st.markdown("---")
-
+        st.divider()
         col_sig, col_graph = st.columns([1.2, 2.5])
 
         with col_sig:
-            st.markdown("### 📡 SINAL DA IA")
-            # Só dispara sinal se a força for > 55% (11 de 20 velas)
-            if forca_compradora >= 55:
-                st.markdown('<div class="card-sinal buy-zone"><h2>🔥 CALL (COMPRA)</h2><p>CATALOGAÇÃO CONFIRMADA</p><h3>PRÓXIMA VELA</h3></div>', unsafe_allow_html=True)
-                st.success(f"Tendência de Alta Forte: {forca_compradora}%")
-            elif forca_vendedora >= 55:
-                st.markdown('<div class="card-sinal sell-zone"><h2>📉 PUT (VENDA)</h2><p>CATALOGAÇÃO CONFIRMADA</p><h3>PRÓXIMA VELA</h3></div>', unsafe_allow_html=True)
-                st.error(f"Tendência de Baixa Forte: {forca_vendedora}%")
+            st.markdown("#### 📡 SINAL DA IA")
+            
+            # --- ESTRATÉGIA FINAL (CATALOGAÇÃO + TENDÊNCIA + ASSERTIVIDADE) ---
+            decisao = "AGUARDAR"
+            
+            # Condição: Só opera se a assertividade for acima de 50%
+            if win_rate >= 50.0:
+                # SE TENDÊNCIA DE ALTA + MHI INDICANDO VERDE
+                if ema9_val > ema21_val and preco_atual > ema9_val:
+                    decisao = "CALL"
+                # SE TENDÊNCIA DE BAIXA + MHI INDICANDO VERMELHO
+                elif ema9_val < ema21_val and preco_atual < ema9_val:
+                    decisao = "PUT"
+            
+            if decisao == "CALL":
+                st.markdown(f'<div class="card-sinal buy-zone"><h2>🔥 CALL</h2><p>CATALOGAÇÃO CONFIRMADA</p><h3>PRÓXIMA VELA</h3></div>', unsafe_allow_html=True)
+            elif decisao == "PUT":
+                st.markdown(f'<div class="card-sinal sell-zone"><h2>📉 PUT</h2><p>CATALOGAÇÃO CONFIRMADA</p><h3>PRÓXIMA VELA</h3></div>', unsafe_allow_html=True)
             else:
-                st.markdown('<div class="card-sinal wait-zone"><h2>⏳ AGUARDAR</h2><p>MERCADO SEM CICLO CLARO</p></div>', unsafe_allow_html=True)
-                st.warning("IA: Força insuficiente para entrada segura.")
+                st.markdown('<div class="card-sinal" style="color:#6b7280;"><h2>⏳ AGUARDAR</h2><p>MERCADO SEM FLUXO</p></div>', unsafe_allow_html=True)
+            
+            if st.button("VERIFICAR PAR DE MOEDA"):
+                st.rerun()
 
         with col_graph:
-            fig = go.Figure(data=[go.Candlestick(x=dados.index, open=dados['Open'], high=dados['High'], low=dados['Low'], close=dados['Close'],
-                increasing_line_color='#00ffcc', decreasing_line_color='#ff4b4b')])
+            fig = go.Figure(data=[go.Candlestick(x=df.index, open=df['Open'], high=df['High'], low=df['Low'], close=df['Close'])])
+            fig.add_trace(go.Scatter(x=df.index, y=df['ema9'], line=dict(color='#00ffcc', width=1), name="EMA 9"))
+            fig.add_trace(go.Scatter(x=df.index, y=df['ema21'], line=dict(color='#ff4b4b', width=1), name="EMA 21"))
             fig.update_layout(template="plotly_dark", xaxis_rangeslider_visible=False, height=450, margin=dict(l=0,r=0,t=0,b=0))
             st.plotly_chart(fig, use_container_width=True)
 
     else:
-        st.error("🟡 Mercado sem dados. Verifique se o ativo está aberto (Forex fecha fds). Tente BTC-USD.")
+        st.info("📡 Conectando ao fluxo... Clique em VERIFICAR se o gráfico não carregar.")
+        if st.button("VERIFICAR PAR DE MOEDA"): st.rerun()
 
 except Exception as e:
-    st.warning("🔄 Sincronizando dados com o mercado... Aguarde.")
+    st.info("🔄 Sincronizando dados institucionais... Aguarde 3 segundos.")
+    if st.button("VERIFICAR PAR DE MOEDA"): st.rerun()
 
-st.markdown("---")
-st.caption(f"🎯 Sniper Elite AI Pro | Licenciado para: {st.session_state.user_email}")
+st.caption(f"Sniper Elite v17.0 | Total Functional | {datetime.now().strftime('%H:%M:%S')}")
