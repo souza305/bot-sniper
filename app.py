@@ -10,7 +10,7 @@ st.set_page_config(page_title="SNIPER ELITE AI", layout="wide")
 # --- SISTEMA DE ACESSO (O MELHOR JEITO) ---
 def check_access(email_usuario):
     # DICA: Substitua o link abaixo pelo seu link de "Publicar na Web" (CSV) do Google Sheets
-    SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQlJrLgRWQ6i_aAzDqL-szsUAsmuiL9tB3HSjthArpzpFJydRHz0fnFFDHuMWghzZThr_2FjPD6MLgm/pub?output=csv"
+    SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_hFyLkF4iT_IZPMaKMsR0wvxq_klJunYnkVvVuTm_F5byOilZxMrIdvmsLZDTshmHwk5qMp2bdWKB/pub?output=csv"
     
     try:
         df_acesso = pd.read_csv(SHEET_URL)
