@@ -23,20 +23,25 @@ def verificar_acesso(email_user, senha_user):
         return not permitido.empty
     except: return False
 
-# --- FRONT-END CONGELADO + REMOÇÃO DE MARCAS ---
+# --- CSS ULTRA PRIORITÁRIO (LIMPEZA TOTAL) ---
 st.markdown("""
     <style>
+    /* REMOVER RODAPÉ, MENU E MARCAS D'ÁGUA */
+    #MainMenu {visibility: hidden !important;}
+    footer {visibility: hidden !important;}
+    header {visibility: hidden !important;}
+    [data-testid="stStatusWidget"] {display: none !important;}
+    .viewerBadge_container__1QSob {display: none !important;}
+    .stDeployButton {display:none !important;}
+    div[data-testid="stToolbar"] {visibility: hidden !important;}
+    
+    /* RESET DE ESPAÇOS PARA OCUPAR A TELA TODA */
+    .block-container {padding-top: 1rem !important; padding-bottom: 0rem !important;}
+    
+    /* DESIGN CONGELADO */
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;900&display=swap');
     * { font-family: 'Inter', sans-serif; }
     .stApp { background: #05070a; color: #e5e7eb; }
-    
-    /* REMOVER TUDO DO STREAMLIT */
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    header {visibility: hidden;}
-    [data-testid="stStatusWidget"] {display: none;}
-    .viewerBadge_container__1QSob {display: none !important;}
-    
     .login-container { background: rgba(17, 23, 30, 0.9); padding: 50px; border-radius: 25px; text-align: center; }
     .user-profile { display: flex; align-items: center; gap: 15px; background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 15px; margin-bottom: 20px; }
     .avatar { width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(45deg, #00ffcc, #d4af37); display: flex; align-items: center; justify-content: center; font-weight: bold; color: #000; }
@@ -65,7 +70,7 @@ if not st.session_state.logado:
             else: st.error("Acesso Negado.")
     st.stop()
 
-# --- SIDEBAR (GESTÃO INTELIGENTE) ---
+# --- SIDEBAR (GESTÃO) ---
 with st.sidebar:
     st.markdown(f'<div class="user-profile"><div class="avatar">{st.session_state.name[0]}</div><div><b>{st.session_state.name}</b><br><small>VIP ACTIVE</small></div></div>', unsafe_allow_html=True)
     st.markdown("### 📊 Gestão Inteligente")
@@ -77,7 +82,7 @@ with st.sidebar:
     else:
         valor_meta = st.number_input("Valor Meta ($)", value=10.0)
     
-    st.markdown(f'<div class="gestion-card"><small>ALVO DO DIA:</small><br><b>Take: <span style="color:#00ffcc;">${valor_meta:.2f}</span></b><br><b>Stop: <span style="color:#ff4b4b;">${valor_meta * 0.8:.2f}</span></b></div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="gestion-card"><b>Meta: <span style="color:#00ffcc;">${valor_meta:.2f}</span></b><br><b>Stop: <span style="color:#ff4b4b;">${valor_meta * 0.8:.2f}</span></b></div>', unsafe_allow_html=True)
     st.divider()
     payout = st.slider("Payout %", 70, 100, 87)
     entrada_base = st.number_input("Entrada ($)", value=banca_atual * 0.02)
@@ -88,14 +93,13 @@ with st.sidebar:
         st.session_state.logado = False
         st.rerun()
 
-# --- TIMER ---
+# --- OPERACIONAL ---
 def get_timer(tf):
     now = datetime.now()
     m_tf = int(tf.replace("m", ""))
     rem = (m_tf * 60) - ((now.minute % m_tf) * 60 + now.second)
     return f"{rem // 60:02d}:{rem % 60:02d}"
 
-# --- OPERACIONAL ---
 try:
     df = fetch_data(ativo, timeframe).dropna()
     df['cor'] = (df['Close'] > df['Open']).astype(int)
